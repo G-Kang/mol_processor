@@ -1,0 +1,30 @@
+List of options used in python scripts:
+
+-a  
+-b  
+-c  Coordinate for Raman intensities (raman)
+-d  Displacement of coordinates along vibrational mode (raman)
+-e  Maximum energy of absorption (sigma)
+-f  
+-g  Lifetime broadening for polarizabilities (alpha, raman)
+-h  
+-i  Main input file (universal)
+-j  
+-k  Line width (K) of excited states (eV)
+-l  Lineshape function (lorentzian or gaussian)
+-m  
+-n  Number of states to be included for indo transition dipole (indo_tdip)
+-o  Main output file (universal)
+-p  
+-q  
+-r  
+-s  Number of SOS states (alpha, raman); step size for absorption (sigma)
+-t  Types file name (sigma)
+-u  
+-v  
+-w  Light energy at which properties are computed (alpha, raman, etpa)
+-x  
+-y  
+-z  Program generating input (universal)
+
+
