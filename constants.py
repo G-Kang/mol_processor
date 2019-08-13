@@ -1,7 +1,5 @@
 import math
 
-test
-
 #fosc_fact = 0.0038
 #alph = 0.000029376024  # Used in polarizability calculation
 
