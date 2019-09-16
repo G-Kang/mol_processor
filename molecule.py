@@ -752,7 +752,7 @@ class Molecule(object):
     # (default: 1.5 times of final ~ ground states energy)
     # Te: entanglement time (default: 4000 fs), Timestep: 1fs
     # Ae: entanglement area (default: 1.0E-4 cm^2)
-    def calc_etpa_cs(self, nstate_in='all', wp=3.0996, ist=0, fst_in='auto', erange=1.5, kap=0.0, Te=4000, Ae=1.0E-4, tstep=1, line='l', pol=[-1,4,-1], tau=0.0):
+    def calc_etpa_cs(self, nstate_in='all', wp=3.0996, ist=0, fst_in='auto', erange=1.5, kap=0.0, Te=4000, Ae=4.0, tstep=1, line='l', pol=[-1,4,-1], tau=0.0):
 	if self.nst_calc:
 	    nstate = nstate_in
 	    fst = fst_in
@@ -763,10 +763,10 @@ class Molecule(object):
 	H = pol[2]
 
 	Ae     = Ae/cnst.nu2cm**2
-#	w0     = wp/2.0
-#	kap_hz = kap
 	w0     = wp*cnst.ev2hz/2.0
 	kap_hz = kap*cnst.ev2hz
+#	w0     = wp*cnst.ev2hz/2.0
+#	kap_hz = kap*cnst.ev2hz
 
 	self.etpa_cs_tot = []
 	self.etpa_cs_real = []
@@ -805,15 +805,15 @@ class Molecule(object):
 		      [complex(0.0,0.0),complex(0.0,0.0),complex(0.0,0.0)]]
 
 	    for f in fst:
-		if True:
-		    n = nstate_in
-#		for n in range(0,nstate):
+#		if True:
+#		    n = nstate_in
+		for n in range(0,nstate):
 		    delE1 = abs(self.states[n].energy*cnst.ev2hz - w0)
-#		    delE1 = abs(self.states[n].energy - w0)
+#		    delE1 = abs(self.states[n].energy*cnst.ev2nu - w0)
 		    delE2 = delE1
 #		    delE2 = (self.states[n].energy-self.states[f].energy)*cnst.ev2hz + w0
-#		    if delE1 == 0: delE1 = float(1E-15)
-#		    if delE2 == 0: delE2 = float(1E-15)
+#		    if delE1 == 0: delE1 = float(1E-15)*cnst.ev2nu
+#		    if delE2 == 0: delE2 = float(1E-15)*cnst.ev2nu
 		    if delE1 == 0: delE1 = float(1E-30)*cnst.ev2hz
 		    if delE2 == 0: delE2 = float(1E-30)*cnst.ev2hz
 

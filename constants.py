@@ -39,18 +39,16 @@ alpha = 1/137.035999679
 afac = width/(2.0*math.pi)
 bfac = width/2.0
 
-## Natural Unit Conversion
+## Natural Unit Conversion for TPA
 nu2cm = hbar/ev2j*speed*100
 au2nu = (au2ang*1E-8)/nu2cm
 ev2nu = ev2j/hbar
 fs2nu = ev2hz*1E-15
-tpa_fact = (math.pi/2)*(nu2cm)**4
-etpa_fact = (math.pi/4)*(nu2cm)**2
+tpa_fact = (math.pi/2)*(nu2cm)**4*(4*math.pi*alpha)**2
+etpa_fact = (math.pi/4)*(nu2cm)**2*(4*math.pi*alpha)**2
 
 ##
 fosc_fact = 2.0/(3.0*au2ev)
-#tpa_fact = 8*math.pi**3*(au2ang*1.0E-8)**4*alpha**2
-#etpa_fact = 4*math.pi**3*(au2ang*1.0E-8)**2*alpha**2
 
 # Polarizability unit conversion
 alph = au2cm/au2ang**2/ea2debye**2

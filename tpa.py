@@ -9,7 +9,7 @@ import getopt
 nstate_in = 'all'# Number of excited states
 ist    = 0	# Initial state
 #fst_in = 'auto'	# Final state
-fst_in = [1,2,3]
+fst_in = [1,2,6]
 wp     = [x/100.0 for x in range(100,401)] # in eV
 erange = 1.5	# States to be included: 0 ~ 1.5X of Final-Initial energy
 kap    = [0.0,0.1]

@@ -111,6 +111,7 @@ for k in kap:
 	for n in nstate_in:
 	    mol.calc_etpa_cs(n,w,ist,fst_in,erange,k,Te,Ae,tstep,line,pol,0.0)
 	    mol.write_etpa_cs(outfilename+'_n'+str(n)+'_f'+str(fst_in[0])+'_wp'+'{0:.2f}'.format(w)+'_kap'+'{0:.2f}'.format(k))
+	    print 'kap:',k,', n:',n,', tpa_cs:',mol.tpa_cs
 print 'Exiting'
 mol.file.close()
 

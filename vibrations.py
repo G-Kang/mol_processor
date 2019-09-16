@@ -11,7 +11,8 @@ class VibAll(object):
 
     # Get all vibrational information
     def get_modes(self, vibfile, prog=' '):
-        if 'man' not in prog:
+	print prog
+        if 'adf' in prog:
             mfile = open(vibfile,'r')
             mline = mfile.readline()
             nmodes = 0
@@ -35,6 +36,33 @@ class VibAll(object):
                 mline = mfile.readline()
             mfile.close()
             print 'Modes ',len(self.modes),self.modes[0].index,self.modes[-1].index
+
+	elif 'gaus' in prog:
+	    mfile = open(vibfile,'r')
+	    mline = mfile.readline()
+	    nmodes = 0
+	    while len(mline) > 0:
+		mline = mfile.readline
+		mline = mfile.readline
+		line = mline.split()
+		norm = []
+		curr_modes = len(line)-2
+		for i in range(0,curr_modes):
+		    self.modes.apend(Vib(float(line[i+2]),nmodes+i+1))
+		mline = mfile.readline
+		line = mline.split()
+		for i in range(0,curr_modes):
+		    norm.append(float(line[i+3]))
+
+		for i in range(0,7): mline = mfile.readline()
+		while len(mline) > 3:
+		    line = mline.split()
+		    for i in range(0,curr_modes):
+			self.modes[nmodes+i].add_disp(norm[i]*[float(line[i*3+1]),float(line[i*3+2]),float(line[i*3+3])])
+		    mline = mfile.readline()
+		nmodes += curr_modes
+	    mfile.close()
+	    print 'Modes ',len(self.modes),self.modes[0].index,self.modes[-1].index
 
         else:
             self.modes.append(Vib(1000.0,1))

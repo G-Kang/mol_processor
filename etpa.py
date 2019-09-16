@@ -115,6 +115,7 @@ for f in fst_in:
 	tpaout.write("# wp(eV) wp(nm) TPACS(cm^s)\n")
 	for w in wp_tpa:
 	    [nstate,fst] = mol.calc_nst(nstate_in,w,[f],erange)
+	    print nstate,w
 	    if w in wp:
 		mol.calc_etpa_cs(nstate,w,ist,fst,erange,k,Te,Ae,tstep,line,pol,0.0)
 		mol.write_etpa_cs(outfilename+'_f'+str(f)+'_wp'+'{0:.2f}'.format(w)+'_kap'+'{0:.2f}'.format(k))

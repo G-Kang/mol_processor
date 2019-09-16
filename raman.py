@@ -160,8 +160,8 @@ for v in vibs.modes:
             f_curr = freq_min + freq_step*j
             factor = scale * afac/( (f_curr - v.freq)**2 + bfac**2)
             spectrum[j][0] += factor * v.crs_tot[0]
-            #spectrum[j][1] += factor * v.crs_real
-            #spectrum[j][2] += factor * v.crs_imag
+            spectrum[j][1] += factor * v.crs_real
+            spectrum[j][2] += factor * v.crs_imag
 
 spec = open(outfilename+'.raman_lrntz_'+str(omega)+'_'+str(states),'w')
 for j in range(0,len(spectrum)):

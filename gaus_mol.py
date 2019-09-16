@@ -6,13 +6,14 @@ from properties   import *
 from molecule     import *
 
 # Holder for all properties of a system
-class AdfMolecule(Molecule):
+class GausMolecule(Molecule):
     # Read the molecular charge
     def read_charge(self):
         if self.atoms_read or self.norbs_read or self.dipole_read or self.orbs_read or self.configs_read or self.states_read:
             self.file.seek(0)
         
-        self.read_to('Net Charge:')
+        self.read_to('Structure from the checkpoint file:')
+	self.read_for(3)
         self.line = self.file.readline()
         self.charge = int(self.line.split()[2])
 
@@ -25,13 +26,12 @@ class AdfMolecule(Molecule):
         if self.norbs_read or self.dipole_read or self.orbs_read or self.configs_read or self.states_read:
             self.file.seek(0)
 
-        #self.read_to('title input')
-        self.read_to('ATOMS')
+        self.read_to('cartesian coordinates used.')
         self.line = self.file.readline()
         self.atoms = []
         self.at_types = []
         
-        while 'END' not in self.line and len(self.line) > 0:
+        while 'Recover connectivity data from disk' not in self.line and len(self.line) > 0:
             line = self.line.split()
             self.atoms.append(Atom([float(line[1]),float(line[2]),float(line[3])],line[0]))
             if line[0] not in self.at_types:
@@ -48,7 +48,7 @@ class AdfMolecule(Molecule):
     # Read the number of molecular orbitals
     def read_norbs(self):
         self.numorb = 0
-        print "Not implemented for ADF"
+        print "Not implemented for Gaussian"
 
         # Save that norbs has been read
         if self.numorb > 0:
@@ -59,7 +59,7 @@ class AdfMolecule(Molecule):
 
     # Read the ground state dipole moment into gdip
     def read_dipole(self):
-        print "Not implemented for ADF"
+        print "Not implemented for Gaussian"
 
         # Save that dipole has been read
         if 'Dipole moment=' in self.line:
@@ -80,7 +80,7 @@ class AdfMolecule(Molecule):
 
         self.mos = []
         orb_count = 0
-        print "Not implemented for ADF"
+        print "Not implemented for Gaussian"
 
         # Save that orbitals have been read
         if orb_count > 0:
@@ -96,7 +96,7 @@ class AdfMolecule(Molecule):
             self.file.seek(0)
 
         self.configs = []
-        print "Not implemented for ADF"
+        print "Not implemented for Gaussian"
 
         # Save that configs have been read
         if len(self.configs) > 0:
@@ -108,55 +108,12 @@ class AdfMolecule(Molecule):
 
     # Read excited-state info
     def read_states(self,types=[]):
-        # Make sure configs have been read
-        #if not self.configs_read:
-        #    self.read_configs()
+        self.states = []
+	print "Not implemented for Gaussian"
 
-        self.read_to('Excitations calculated with the davidson method')
-        self.line = self.file.readline()
-        nirrep = 0
-        while '                                                               ' not in self.line and len(self.line) > 0:
-            nirrep += 1
-            self.line = self.file.readline()
-        print 'nirrep', nirrep
-
-        self.states = [State(0.0,0.0)]
-
-        # Read states of each symmetry
-        for i in range(0,nirrep):
-            istart = len(self.states)
-            self.read_to('Excitation energies E')
-            self.read_for(5)
-            allowed = False
-
-            while len(self.line) > 2:
-                line = self.line.split()
-                e = float(line[2])
-                o = float(line[3])
-                if o > 0.0:
-                    allowed = True
-                self.states.append(State(e,o))
-                self.line = self.file.readline()
-
-            if allowed == True:
-                self.read_to('Transition dipole moments')
-                self.read_for(5)
-                while len(self.line) > 2:
-                    line = self.line.split()
-                    self.states[istart].tdip = [float(line[3])*4.8032,float(line[4])*4.8032,float(line[5])*4.8032]
-                    istart += 1
-                    self.line = self.file.readline()
-
-
-        # Sort states by energy
-        self.states.sort(key = lambda x: x.energy)
-
-        #for i in range(0,11):
-        #    print self.states[i].energy, self.states[i].tdip
-
-        # Save that states have been read
-        if len(self.states) > 1:
-            self.states_read = True
+	# Save that states have been read
+	if len(self.states) > 1:
+	    self.states_read = True
             print len(self.states), "excited states read"
         else:
             print "Error: Excited states not read"
@@ -169,10 +126,10 @@ class AdfMolecule(Molecule):
         nmodes = 0
 
         nmo  = open(     'nmodes.inp', 'w')
-        self.read_to('Vibrations and Normal Modes')
-        self.read_for(7)
+        self.read_to('normal coordinates')
+        self.read_for(1)
 
-        while 'List of All Frequencies' not in self.line and len(self.line) > 0:
+        while '-------------------' not in self.line and len(self.line) > 0:
             nmo.write(self.line)
             self.line = self.file.readline()
         nmo.close()

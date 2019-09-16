@@ -3,6 +3,7 @@ from adf_mol   import *
 from qchem_mol import *
 from xyz_mol   import *
 from nwch_mol  import *
+from gaus_mol  import *
 from man_mol   import *
 
 def open_mol(filename, prog = ' '):
@@ -34,10 +35,12 @@ def open_mol(filename, prog = ' '):
                 prog = 'qchem'
 	    elif 'northwest computational chemistry' in fline:
 		prog = 'nwchem'
+	    elif 'gaussian' in fline:
+		prog = 'gaussian'
             else:
                 # Assume manual input
                 prog = 'man'
-    
+    print prog
     if prog == 'mopac':
         out = MopacMolecule(file)
     elif prog == 'adf':
@@ -46,12 +49,14 @@ def open_mol(filename, prog = ' '):
         out = QchemMolecule(file)
     elif prog == 'nwchem':
 	out = NwchMolecule(file)
+    elif prog == 'gaussian':
+	out = GausMolecule(file)
     elif prog == 'xyz':
 	out = XYZMolecule(file)
     elif prog == 'man':
         out = ManMolecule(file)
     else:
-        sys.exit("Program"+prog+"not recognized")
+        sys.exit("Program "+prog+" not recognized")
 
     return out, prog
 
