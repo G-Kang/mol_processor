@@ -1,0 +1,5 @@
+Essential functions for calculating interstate transition dipoles are in molecule.py file:
+1. calc_interst_tdip
+2. calc_etpa_cs
+
+calc_etpa_cs calculates ETPA cross section using the transition dipoles calculated with calc_interst_tdip function. This function reads transition dipoles written in the output file from NWChem claculation.
