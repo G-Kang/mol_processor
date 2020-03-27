@@ -29,7 +29,7 @@ def open_mol(filename, prog = ' '):
             file.seek(0)
             if 'mopac: public domain version' in fline:
                 prog = 'mopac'
-            elif 'amsterdam density functional' in fline:
+            elif 'amsterdam density functional' in fline or 'amsterdam modeling suite' in fline:
                 prog = 'adf'
             elif 'q-chem, inc., pleasanton, ca' in fline:
                 prog = 'qchem'
@@ -40,7 +40,7 @@ def open_mol(filename, prog = ' '):
             else:
                 # Assume manual input
                 prog = 'man'
-    print prog
+
     if prog == 'mopac':
         out = MopacMolecule(file)
     elif prog == 'adf':

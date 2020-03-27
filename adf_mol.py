@@ -59,10 +59,19 @@ class AdfMolecule(Molecule):
 
     # Read the ground state dipole moment into gdip
     def read_dipole(self):
-        print "Not implemented for ADF"
+	if self.orbs_read or self.configs_read or self.states_read:
+	    self.file.seek(0)
+
+	self.read_to('Dipole Moment')
+	self.read_for(3)
+
+	self.gdip = [float(k) for k in self.line.split()[2:]]
+	self.read_for(1)
+	self.gdip.append(float(self.line.split()[1]))
+	self.interst_tdip = [[self.gdip]]
 
         # Save that dipole has been read
-        if 'Dipole moment=' in self.line:
+        if len(self.gdip) > 0:
             self.dipole_read = True
             #print "Dipole read"
         else:
@@ -108,6 +117,8 @@ class AdfMolecule(Molecule):
 
     # Read excited-state info
     def read_states(self,types=[]):
+	if not self.dipole_read:
+	    self.read_dipole()
         # Make sure configs have been read
         #if not self.configs_read:
         #    self.read_configs()
@@ -118,13 +129,11 @@ class AdfMolecule(Molecule):
         while '                                                               ' not in self.line and len(self.line) > 0:
             nirrep += 1
             self.line = self.file.readline()
-        print 'nirrep', nirrep
+        #print 'nirrep', nirrep
 
         self.states = [State(0.0,0.0)]
-
         # Read states of each symmetry
         for i in range(0,nirrep):
-            istart = len(self.states)
             self.read_to('Excitation energies E')
             self.read_for(5)
             allowed = False
@@ -143,10 +152,13 @@ class AdfMolecule(Molecule):
                 self.read_for(5)
                 while len(self.line) > 2:
                     line = self.line.split()
-                    self.states[istart].tdip = [float(line[3])*4.8032,float(line[4])*4.8032,float(line[5])*4.8032]
-                    istart += 1
-                    self.line = self.file.readline()
+		    ind = int(line[0])
 
+		    while ind > len(self.interst_tdip[0]):
+			self.interst_tdip[0].append([0.0,0.0,0.0,0.0])
+
+		    self.interst_tdip[0].append([float(line[3]),float(line[4]),float(line[5]),float(line[2])])
+                    self.line = self.file.readline()
 
         # Sort states by energy
         self.states.sort(key = lambda x: x.energy)
@@ -157,7 +169,7 @@ class AdfMolecule(Molecule):
         # Save that states have been read
         if len(self.states) > 1:
             self.states_read = True
-            print len(self.states), "excited states read"
+            #print len(self.states), "excited states read"
         else:
             print "Error: Excited states not read"
 

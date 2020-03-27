@@ -17,15 +17,17 @@ import getopt
 nstate_in = 'all'
 ist    = 0	# Initial state
 #fst_in = 'auto'	# Automatically find states
-#fst_in = [1,2,3,4,5,6,7,8,9,10]
-fst_in = [i+1 for i in range(15)]
-#fst_in = [2]
+#fst_in = [i+1 for i in range(10)]
+fst_in = range(8,9)
+#fst_in = [2,3,5]
 #wp     = [3.10] # in eV, 400nm
-wp     = [x/100.0 for x in range(200,401)]
-wp_tpa = [x/100.0 for x in range(100,401)]
-erange = 1.5	# States to be included: 0 ~ 1.5X of Final-Initial energy
+wp     = [x/100.0 for x in range(150,351)]
+#wp	= [x/100.0 for x in range(500,901)]
+#wp_tpa	= [x/100.0 for x in range(500,901)]
+
+erange = 10.0	# States to be included: 0 ~ 1.5X of Final-Initial energy
 Te     = 200	# Entanglement time range
-Ae     = 4.0 # Entanglement area, in cm^2
+Ae     = 1.0E-6 # Entanglement area, in cm^2
 tstep  = 1	# Entanglement time step
 #kap    = [0.0,0.1]	# Linewidth of excited states, in eV
 kap = [0.0,0.1]
@@ -113,15 +115,30 @@ for f in fst_in:
     for k in kap:
 	tpaout = open(outfilename+'_f'+str(f)+'_kap'+'{0:.2f}'.format(k)+'.tpa','w')
 	tpaout.write("# wp(eV) wp(nm) TPACS(cm^s)\n")
-	for w in wp_tpa:
+
+	etpaout = open(outfilename+'_f'+str(f)+'_kap'+'{0:.2f}'.format(k)+'.etpa','w')
+	spmout = open(outfilename+'_f'+str(f)+'_kap'+'{0:.2f}'.format(k)+'.spm','w')
+
+	etpa_matrix = []
+	spm_matrix = []
+	for w in wp:
 	    [nstate,fst] = mol.calc_nst(nstate_in,w,[f],erange)
-	    print nstate,w
-	    if w in wp:
-		mol.calc_etpa_cs(nstate,w,ist,fst,erange,k,Te,Ae,tstep,line,pol,0.0)
-		mol.write_etpa_cs(outfilename+'_f'+str(f)+'_wp'+'{0:.2f}'.format(w)+'_kap'+'{0:.2f}'.format(k))
-	    else: mol.calc_tpa_cs(nstate,w,ist,fst,erange,k,line,[2,2,2])
-	    tpaout.write("%s %s  %s\n" % (str(w).rjust(5),string.rjust('%2f'%float(1240.00/w),5),string.rjust('{:.3e}'.format(mol.tpa_cs),7)))
+	    etpaval = mol.calc_etpa_cs(nstate,w,ist,fst,erange,k,Te,Ae,tstep,line,pol,0.0)
+	    etpa_matrix.append(etpaval[1])
+	    spm_matrix.append(etpaval[4])
+#	    mol.write_etpa_cs(outfilename+'_f'+str(f)+'_wp'+'{0:.2f}'.format(w)+'_kap'+'{0:.2f}'.format(k))
+	    tpaout.write("%s %s  %s\n" % (str(w).rjust(5),string.rjust('%2f'%float(1240.00/w),5),string.rjust('{:.3e}'.format(etpaval[5]),7)))
 	tpaout.close()
+	for t in etpaval[0]:
+	    for w in wp:
+		i = etpaval[0].index(t)
+		j = wp.index(w)
+		etpaout.write("  %s" % str(etpa_matrix[j][i]))
+		spmout.write("  %s" % str(spm_matrix[j][i]))
+	    etpaout.write("\n")
+	    spmout.write("\n")
+	etpaout.close()
+	spmout.close()
 print 'Exiting'
 mol.file.close()
 

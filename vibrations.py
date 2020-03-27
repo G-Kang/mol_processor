@@ -11,7 +11,6 @@ class VibAll(object):
 
     # Get all vibrational information
     def get_modes(self, vibfile, prog=' '):
-	print prog
         if 'adf' in prog:
             mfile = open(vibfile,'r')
             mline = mfile.readline()
@@ -35,7 +34,7 @@ class VibAll(object):
                 mline = mfile.readline()
                 mline = mfile.readline()
             mfile.close()
-            print 'Modes ',len(self.modes),self.modes[0].index,self.modes[-1].index
+            #print 'Modes ',len(self.modes),self.modes[0].index,self.modes[-1].index
 
 	elif 'gaus' in prog:
 	    mfile = open(vibfile,'r')

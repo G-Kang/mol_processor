@@ -9,9 +9,10 @@ au2ev  = 27.2107
 au2cm  = 219474.63
 au2ang = 0.5291772
 ev2j   = 1.60218E-19
-fs2ev  = 1.519267515    # fs to eV-1
-ev2hz  = 1.0/4.135667516*1.0E15
-nm2ev  = 1.0/1240
+#fs2ev  = 1.519267515    # fs to eV-1
+ev2hz  = 1.0/(4.135667696*1.0E-15)
+#ev2hz  = 1.0/(6.582119569*1.0E-16)
+nmev   = 1239.84193
 
 ang2m = 1.0E-10
 au2s  = 6.582119E-16
@@ -22,11 +23,14 @@ boltz = 1.3806580E-23
 speed = 2.99792458E+8
 epsilon0 = 8.8541878E-12
 avogadro = 6.02214199E+23
+
 ea2debye = 4.80321
 debye2cm = 1E-08/ea2debye
 debye2au = 0.393430307
 au2debye = 2.541746
 ea2au = ea2debye*debye2au
+au2jm3 = (3.1623/debye2au)*1.0E-25
+
 me = 9.10938356E-31
 amu = 1/avogadro*1E-03
 temper = 300.0
@@ -44,8 +48,14 @@ nu2cm = hbar/ev2j*speed*100
 au2nu = (au2ang*1E-8)/nu2cm
 ev2nu = ev2j/hbar
 fs2nu = ev2hz*1E-15
-tpa_fact = (math.pi/2)*(nu2cm)**4*(4*math.pi*alpha)**2
-etpa_fact = (math.pi/4)*(nu2cm)**2*(4*math.pi*alpha)**2
+#tpa_fact = (math.pi/2)*(nu2cm)**4*(4*math.pi*alpha)**2
+#etpa_fact = (math.pi/4)*(nu2cm)**2*(4*math.pi*alpha)**2
+
+tpa_fact = 4*math.pi**3*alpha*(au2ang*1e-8)**5/(speed*100)
+etpa_fact = 2*math.pi**3*alpha*(au2ang*1e-8)**5/(speed*100)
+
+#tpa_fact = (math.pi/2)*(au2ang*1e-8)**4*(4*math.pi*alpha)**2
+#etpa_fact = (math.pi/4)*(au2ang*1e-8)**4*(4*math.pi*alpha)**2
 
 ##
 fosc_fact = 2.0/(3.0*au2ev)
@@ -119,3 +129,10 @@ valelec_dict = {
     'Ag' : 11,
     'Au' : 11
 }
+
+elem_list = ['H', 'He', 'Li', 'Be', 'B', 'C', 'N', 'O', 'F', 'Ne', 'Na', 'Mg', 'Al', 'Si', 'P', 'S', 'Cl', 'Ar',
+	     'K', 'Ca', 'Sc', 'Ti', 'V', 'Cr', 'Mn', 'Fe', 'Co', 'Ni', 'Cu', 'Zn', 'Ga', 'Ge', 'As', 'Se', 'Br', 'Kr',
+	     'Rb', 'Sr', 'Y', 'Zr', 'Nb', 'Mo', 'Tc', 'Ru', 'Rh', 'Pd', 'Ag', 'Cd', 'In', 'Sn', 'Sb', 'Te', 'I', 'Xe',
+	     'Cs', 'Ba', 'La', 'Ce', 'Pr', 'Nd', 'Pm', 'Sm', 'Eu', 'Gd', 'Tb', 'Dy', 'Ho', 'Er', 'Tm', 'Yb', 'Lu',
+	     'Hf', 'Ta', 'W', 'Re', 'Os', 'Ir', 'Pt', 'Au', 'Hg', 'Tl', 'Pb', 'Bi', 'Po', 'At', 'Rn', 'Fr', 'Ra', 'Ac',
+	     'Th', 'Pa', 'U', 'Np', 'Pu', 'Am', 'Cm', 'Bk', 'Cf', 'Es', 'Fm', 'Md', 'No', 'Lr']
