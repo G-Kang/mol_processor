@@ -17,11 +17,9 @@ import getopt
 nstate_in = 'all'
 ist    = 0	# Initial state
 #fst_in = 'auto'	# Automatically find states
-#fst_in = [i+1 for i in range(10)]
-fst_in = range(8,9)
+fst_in = [i+1 for i in range(10)]
 #fst_in = [2,3,5]
-#wp     = [3.10] # in eV, 400nm
-wp     = [x/100.0 for x in range(150,351)]
+wp     = [x/100.0 for x in range(150,401)]
 #wp	= [x/100.0 for x in range(500,901)]
 #wp_tpa	= [x/100.0 for x in range(500,901)]
 

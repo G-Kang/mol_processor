@@ -11,46 +11,29 @@
 import string,sys,math,re
 from mol_assign import *
 from constants import *
-from operator import itemgetter
 import getopt
 
-def calc_percentage(matrix,size,f):
-    outfile_sort = open('state_portion_f'+str(f)+'.out','w')
-    outfile_matrix = open('tpa_matrix_f'+str(f)+'.out','w')
-    row = [j for sub in matrix for j in sub]
-    total = sum(row)
-
-    indices,row_sorted = zip(*sorted(enumerate(row),reverse=True,key=itemgetter(1)))
-    percentage = [i*100.0/total for i in row_sorted]
-
-    for n in range(len(row_sorted)):
-	i = indices[n]/size
-	j = indices[n]%size
-	tpacs = row_sorted[n]
-	outfile_sort.write('i: %s, j: %s, TPACS: %s (%s)\n' % (str(i),str(j),string.rjust('{:.3e}'.format(tpacs),7),string.rjust('%.2f'%percentage[n],5)))
-    for i in range(size):
-	for j in range(size):
-	    outfile_matrix.write('%s\t%s\t%s\n' % (str(i),str(j),string.rjust('{:.3e}'.format(matrix[i][j]),7)))
-
 # Initialize defaults
+nstate_in = 'all'
 ist    = 0	# Initial state
-nst_in = 11
-fst_in = [4]	# Automatically find states
-wp     = [3.25] # in eV, 400nm
-#wp     = [x/100.0 for x in range(200,401)]
-#wp_tpa = [x/100.0 for x in range(100,401)]
+#fst_in = 'auto'	# Automatically find states
+fst_in = [2]
+wp     = [3.10]
+wp_tpa = [3.10]
 erange = 1.5	# States to be included: 0 ~ 1.5X of Final-Initial energy
-Te     = 1500	# Entanglement time range
+Te     = 200	# Fixed entanglement time (parameter)
 Ae     = 1.0E-6 # Entanglement area, in cm^2
-tstep  = 1	# Entanglement time step
-kap    = [0.0,0.1]	# Linewidth of excited states, in eV
+tstep  = 1
+#kap   = [0.0,0.1]	# Linewidth of excited states, in eV
+kap    = [0.0,0.1]
+tau    = 60
 line   = 'l'
 pol    = [-1,4,-1]
 
 prog = ' '
 
 helpfile = """
-etpa_inter.py -i <inputfile> -o <outputfile> -n <number of states> -w <pump energy> -k <linewidth of states> -f <final state> -l <lineshape function> -z <program>
+etpa_tau.py -i <inputfile> -o <outputfile> -n <number of states> -w <pump energy> -k <linewidth of states> -f <final state> -l <lineshape function> -z <program>
 
     -i    Base file name for input and output (must be included)
     -o    Base file name for all output files, if different from input
@@ -94,7 +77,7 @@ for opt, arg in options:
     elif opt in ('-n','--nstate'):
 	nstate_in = int(arg)
     elif opt in ('-w','--wp'):
-	wp = [float(arg)]
+	wp = float(arg)
     elif opt in ('-k','--kappa'):
 	kap = float(arg)
     elif opt in ('-f','--final'):
@@ -110,7 +93,7 @@ for opt, arg in options:
         prog = arg.lower()
 
 print 'Check the following ETPA parameters in the script'
-print 'input nstate =',nst_in,'\nwp     =',wp,'(eV)\nerange =',erange,'\nTe     = 0 ~',Te,'(fs)\ntstep  =',tstep,'(fs)\nkappa  =',kap,'(eV)\n'
+print 'input nstate =',nstate_in,'\nwp     =',wp,'(eV)\nerange =',erange,'\nTe     = ',Te,'(fs)\nkappa  =',kap,'(eV)\ntau = ',tau,'\n'
 
 [mol, program] = open_mol(infilename, prog)
 
@@ -119,22 +102,46 @@ if program == 'mopac':
     mol.read_orbs()        # Read in the orbital coefficients and associated atoms from output
     mol.read_configs()     # Read in the configuration information
 #    mol.write_dipmat(outfilename)
-mol.print_states(11)
-mol.calc_interst_tdip(16,program,infilename)
-mol.write_interst_tdip(16,infilename)
+mol.print_states(min(nstate_in,11))
+[nstate,fst] = mol.calc_nst(nstate_in,max(wp),fst_in,erange)
+mol.calc_interst_tdip(nstate,program,infilename)
+mol.write_interst_tdip(nstate,infilename)
 
-tpa_matrix = [[0.0 for x in range(nst_in)] for y in range(nst_in)]
 for f in fst_in:
     for k in kap:
-	for w in wp:
-	    for i in range(nst_in):
-		for j in range(nst_in):
-		    etpafile = outfilename+'_n'+str(i)+'-'+str(j)+'_f'+str(f)+'_wp'+'{0:.2f}'.format(w)+'_kap'+'{0:.2f}'.format(k)
-		    etpa_matrix = mol.calc_etpa_sr([i,j],w,ist,f,erange,k,Te,Ae,tstep,line,pol,0.0)
-		    tpa_matrix[i][j] = etpa_matrix[5]
-		    mol.write_etpa_cs(etpa_matrix,etpafile)
-    calc_percentage(tpa_matrix,nst_in,f)
+	for w in wp_tpa:
+	    [nstate,fst] = mol.calc_nst(nstate_in,w,[f],erange)
+	    if w in wp:
+		etpa_matrix = mol.calc_etpa_dw(nstate,w,ist,fst,erange,k,Te,Ae,tstep,line,pol,dw=0.1)
+		mol.write_etpa_cs(etpa_matrix, outfilename+'_f'+str(f)+'_wp'+'{0:.2f}'.format(w)+'_kap'+'{0:.2f}'.format(k))
+	    else: mol.calc_tpa_cs(nstate,w,ist,fst,erange,k,line,[2,2,2])
 print 'Exiting'
 mol.file.close()
 
+#-------------------------------------------------------------------------
+# Using the parameters obtained above, propagate the density matrix
+# with Liouville dynamics
+# Liouville equation without dissipation: d rho / d t = -i/hbar [H, rho]
+# v1.0 (without coupling between excited states)
+#
+# Kevin Kang, 7/5/2018
+#-------------------------------------------------------------------------
+'''
+import numpy as np
+import constants as cnst
 
+# Constants
+hbar = planck/(2.0*math.pi)
+
+# Test parameters
+dt = 1.0         # time step (in fs)
+time = 1000.0    # total time duration for density propagation (in fs)
+nstep = int(time/dt)  # number of time steps
+
+dmat = np.zeros((nstate, nstate, nstep))
+hamil = np.zeros((nstate,nstate))
+
+dmat[0,0,0] = 1 # Density matrix at t = 0 (Only ground state)
+
+for i in range(0,nstate)
+'''

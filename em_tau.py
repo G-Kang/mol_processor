@@ -10,7 +10,7 @@ from mol_assign import *
 from constants import *
 import getopt
 
-fstate = 1
+fstate = 4
 
 prog = ' '
 
@@ -59,6 +59,7 @@ for opt, arg in options:
 
 [mol, program] = open_mol(infilename, prog)
 
-for f in range(1,fstate+1):
-        print 'f=',f,' ',mol.calc_em_tau(0,f,program,infilename),'Hz'
+for f in range(0,fstate+1):
+#    for i in range(0,f):
+    print 'f=',f,' ',mol.calc_em_tau(0,f,program,infilename),'Hz'
 mol.file.close()

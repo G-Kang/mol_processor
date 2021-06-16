@@ -624,15 +624,11 @@ class Molecule(object):
         if tau == 0:
             Te_list = range(tstep, Te + tstep, tstep)
         else:
-            Te_list = range(0, tau + 1)
+            Te_list = range(-tau, tau + 1)
         delta_tpa = 1 / (0.1 * math.pi)
-        S_tpa = [
-         [
-          complex(0.0, 0.0), complex(0.0, 0.0), complex(0.0, 0.0)],
-         [
-          complex(0.0, 0.0), complex(0.0, 0.0), complex(0.0, 0.0)],
-         [
-          complex(0.0, 0.0), complex(0.0, 0.0), complex(0.0, 0.0)]]
+        S_tpa = [[complex(0.0, 0.0), complex(0.0, 0.0), complex(0.0, 0.0)],
+                 [complex(0.0, 0.0), complex(0.0, 0.0), complex(0.0, 0.0)],
+                 [complex(0.0, 0.0), complex(0.0, 0.0), complex(0.0, 0.0)]]
         for t in range(0, len(Te_list)):
             if tau == 0:
                 tau1 = Te_list[t] * 1e-15
@@ -646,19 +642,16 @@ class Molecule(object):
             etpa_cs_real.append(0.0)
             etpa_cs_imag.append(0.0)
             etpa_prob.append(0.0)
-            S_etpa = [
-             [
-              complex(0.0, 0.0), complex(0.0, 0.0), complex(0.0, 0.0)],
-             [
-              complex(0.0, 0.0), complex(0.0, 0.0), complex(0.0, 0.0)],
-             [
-              complex(0.0, 0.0), complex(0.0, 0.0), complex(0.0, 0.0)]]
+            S_etpa = [[complex(0.0, 0.0), complex(0.0, 0.0), complex(0.0, 0.0)],
+                      [complex(0.0, 0.0), complex(0.0, 0.0), complex(0.0, 0.0)],
+                      [complex(0.0, 0.0), complex(0.0, 0.0), complex(0.0, 0.0)]]
             for f in fst:
                 delta = cnst.ev2hz / self.calc_em_tau(0,f)
                 for n in range(0, nstate):
                     delE1 = abs(self.states[n].energy - w0)
-                    delE2 = delE1
+                    delE2 = abs(self.states[n].energy - w0)
                     if delE1 == 0:
+                    #    continue
                         delE1 = float(1e-30)
                     if delE2 == 0:
                         delE2 = float(1e-30)
@@ -797,6 +790,82 @@ class Molecule(object):
             print 'Error: ETPA cross section not calculated'
         return (Te_list, etpa_cs_tot, etpa_cs_real, etpa_cs_imag, etpa_prob, tpa_cs)
 
+    def calc_etpa_dw(self, nstate_in='all', wp=3.0996, ist=0, fst_in='auto', erange=1.5, kap=0.0, Te=4000, Ae=1e-06, tstep=1, line='l', pol=[-1, 4, -1], dw=0.1):
+        if self.nst_calc:
+            nstate = nstate_in
+            fst = fst_in
+        else:
+            nstate, fst = self.calc_nst(self, nstate_in, wp, fst_in, erange)
+        F = pol[0]
+        G = pol[1]
+        H = pol[2]
+        w0 = wp / 2.0
+        etpa_cs_tot = []
+        etpa_cs_real = []
+        etpa_cs_imag = []
+        tpa_cs = 0.0
+        etpa_prob = []
+
+        dw_step = 0.01
+        dw_list = [-dw + dw_step*i for i in range(0,int((2*dw+dw_step)/dw_step))]
+
+        delta_tpa = 1 / (0.1 * math.pi)
+        S_tpa = [[complex(0.0, 0.0), complex(0.0, 0.0), complex(0.0, 0.0)],
+                 [complex(0.0, 0.0), complex(0.0, 0.0), complex(0.0, 0.0)],
+                 [complex(0.0, 0.0), complex(0.0, 0.0), complex(0.0, 0.0)]]
+        tau1 = Te * 1e-15
+        tau2 = Te * 1e-15
+        denom = 1.0 / (30 * Ae * Te * 1e-15)
+
+        for i, d in enumerate(dw_list):
+            etpa_cs_tot.append(0.0)
+            etpa_cs_real.append(0.0)
+            etpa_cs_imag.append(0.0)
+            etpa_prob.append(0.0)
+            S_etpa = [[complex(0.0, 0.0), complex(0.0, 0.0), complex(0.0, 0.0)],
+                      [complex(0.0, 0.0), complex(0.0, 0.0), complex(0.0, 0.0)],
+                      [complex(0.0, 0.0), complex(0.0, 0.0), complex(0.0, 0.0)]]
+            for f in fst:
+                delta = cnst.ev2hz / self.calc_em_tau(0,f)
+                for n in range(0, nstate):
+                    delE1 = abs(self.states[n].energy - (w0 + d))
+                    delE2 = abs(self.states[n].energy - (w0 - d))
+                    if delE1 == 0:
+                        continue
+                    #    delE1 = float(1e-30)
+                    #if delE2 == 0:
+                    #    delE2 = float(1e-30)
+                    if f == n:
+                        tdip1 = [ self.interst_tdip[f][n][k] - self.interst_tdip[ist][ist][k] for k in range(0, 3) ]
+                    else:
+                        tdip1 = self.interst_tdip[f][n]
+                    tdip2 = self.interst_tdip[n][ist]
+                    for a in range(0, 3):
+                        for b in range(0, 3):
+                            S_etpa[a][b] += tdip1[a] * tdip2[b] * (1 - math.e ** ((complex(0.0, -1.0) * tau1 * delE1 - 0.5 * tau1 * kap) * cnst.ev2hz)) / (delE1 - complex(0.0, 0.5) * kap) + tdip1[b] * tdip2[a] * (1 - math.e ** ((complex(0.0, -1.0) * tau2 * delE2 - 0.5 * tau2 * kap) * cnst.ev2hz)) / (delE2 - complex(0.0, 0.5) * kap)
+                            if i == 0:
+                                S_tpa[a][b] += tdip1[a] * tdip2[b] / (delE1 - complex(0.0, 0.5) * kap) + tdip1[b] * tdip2[a] / (delE2 - complex(0.0, 0.5) * kap)
+
+            for a in range(0, 3):
+                for b in range(0, 3):
+                    etpa_cs_real[i] += (F * S_etpa[a][a].real * S_etpa[b][b].real + G * S_etpa[a][b].real * S_etpa[a][b].real + H * S_etpa[a][b].real * S_etpa[b][a].real) * cnst.etpa_fact * w0 ** 2 * delta * denom
+                    etpa_cs_imag[i] += (F * S_etpa[a][a].imag * S_etpa[b][b].imag + G * S_etpa[a][b].imag * S_etpa[a][b].imag + H * S_etpa[a][b].imag * S_etpa[b][a].imag) * cnst.etpa_fact * w0 ** 2 * delta * denom
+                    etpa_prob[i] += (F * S_tpa[a][a].real * S_tpa[b][b].real + G * S_tpa[a][b].real * S_tpa[a][b].real + H * S_tpa[a][b].real * S_tpa[b][a].real) * cnst.etpa_fact * w0 ** 2 * delta * denom
+                    etpa_prob[i] += (F * S_tpa[a][a].imag * S_tpa[b][b].imag + G * S_tpa[a][b].imag * S_tpa[a][b].imag + H * S_tpa[a][b].imag * S_tpa[b][a].imag) * cnst.etpa_fact * w0 ** 2 * delta * denom
+                    if i == 0:
+                        tpa_cs += (2 * S_tpa[a][a].real * S_tpa[b][b].real + 2 * S_tpa[a][b].real * S_tpa[a][b].real + 2 * S_tpa[a][b].real * S_tpa[b][a].real) * cnst.tpa_fact * w0 ** 2 * delta_tpa / 30
+                        tpa_cs += (2 * S_tpa[a][a].imag * S_tpa[b][b].imag + 2 * S_tpa[a][b].imag * S_tpa[a][b].imag + 2 * S_tpa[a][b].imag * S_tpa[b][a].imag) * cnst.tpa_fact * w0 ** 2 * delta_tpa / 30
+
+            etpa_cs_tot[i] = etpa_cs_real[i]
+
+        if len(etpa_cs_tot) >= 0:
+            self.tpa_cs_calc = True
+            self.etpa_cs_calc = True
+        else:
+            print 'Error: ETPA cross section not calculated'
+        return (
+         dw_list, etpa_cs_tot, etpa_cs_real, etpa_cs_imag, etpa_prob, tpa_cs)
+
     def write_etpa_cs(self, etpa_matrix, outfilename):
         Te = etpa_matrix[0]
         etpa_cs_tot = etpa_matrix[1]
@@ -833,7 +902,6 @@ class Molecule(object):
         stick_out.write('# E/eV  E/nm     f\n')
         lrtz_out.write('# E/eV     E/nm     abs/a.u.\n')
         for i in range(1, nstate + 1):
-	    print i,self.interst_tdip[0][i]
             stick_out.write('%s %s %s\n' % (string.rjust('%.2f' % self.states[i].energy, 6), string.rjust('%.2f' % float(1239.84187 / self.states[i].energy), 7),
              string.rjust('%.3f' % self.interst_tdip[0][i][3], 7)))
             for j in range(0, len(absint)):
@@ -898,7 +966,7 @@ class Molecule(object):
             dE = abs(Ef - Ei) * cnst.ev2hz
             dip = 0.0
             for k in range(0, 3):
-                dip += (self.interst_tdip[istate][i][k] * cnst.au2ang * 1e-10) ** 2
+                dip += (self.interst_tdip[i][fstate][k] * cnst.au2ang * 1e-10) ** 2
 
             tau_inv += 4.0 * cnst.alpha * dE ** 3 * dip / (3.0 * cnst.speed ** 2)
 
