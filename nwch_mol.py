@@ -61,6 +61,9 @@ class NwchMolecule(Molecule):
 	    self.file.seek(0)
 
 	self.gdip = [0.0,0.0,0.0,0.0]
+	# Ground-state dipole is read to be 0 ONLY for SLR-TDDFT calculation 
+	# because this is implemented in calculating static dipoles.
+	'''
 	self.read_to('Multipole analysis of the density')
 	self.read_for(7)
 	for k in range(0,3):
@@ -77,7 +80,7 @@ class NwchMolecule(Molecule):
             #print "Dipole read"
         else:
             print "Error: Ground-state dipole not read"
-
+	'''
     # Read the molecular orbitals
     def read_orbs(self, types=[], mo_min=1, mo_max=0):
         # Make sure atoms and norbs have been read
